@@ -1,0 +1,447 @@
+---
+title: "Project_01"
+output: html_document
+date: "2024-02-16"
+---
+### PART 1
+```{r}
+# Part 1
+ 
+#This just loading all packages used in hw 
+
+library(dplyr)
+
+library(tibble)
+
+library(lubridate)
+
+library(readr)
+
+library(ggplot2)
+```
+
+
+#### Create a dataframe with 4 variables.
+```{r}
+#Make the dataframe literally as mentioned in instructions
+
+doctor_data <- data.frame(
+
+  doctor_type = c("PCP", "Psychiatrist", "Surgeon", "Anesthesia"),
+
+  doctor_lastname = c("Smith", "Dame", "Jones", "Zayas"),
+
+  location = c("MA", "ME", "NH", "VT"),
+
+  AVG_Rating = c(7, 9, 8, 9)
+
+)
+ 
+# Print the thing as mentioend by instructions
+
+print(doctor_data)
+```
+
+
+#### Select row 1 in column 2, what was selected?
+#### Select rows 2 through 4, what was selected?
+#### Select the last column, what was selected?
+```{r}
+selected_1_2 <- doctor_data[1, 2]  # Take the 1 row and 2 column. I got Smith
+selected_1_2 
+
+selected_2_to_4 <- doctor_data[2:4, ]  #  Take the rows 2 through 4 for all columns
+selected_2_to_4
+
+selected_last_column <- doctor_data[, 4]  # Pick all rows in the fourth column
+selected_last_column 
+
+```
+
+
+####  Using the dataset Mtcars create a scatterplot.
+```{r}
+# Get column names
+colnames(mtcars)
+ 
+# Scatterplot
+
+ggplot(mtcars, aes(x = mpg, y = hp, color = as.factor(cyl))) +  # Convert cyl to factor for discrete color scale
+
+  geom_point() +
+
+  labs(title = "MPG vs Horsepower in mtcars Dataset",
+
+       x = "Miles Per Gallon (MPG)",
+
+       y = "Horsepower (HP)",
+
+       color = "Number of Cylinders") +
+
+  theme_minimal()
+ 
+## Plot shows the relationship between HP(Horsepower) and MPG(Miles per Gallon)
+
+## of various cars in dataset. What I observe/see is an inverse relationship: cars
+
+## with higher horsepower tend to have lower Miles Per Gallon. Yet again, I know
+
+## very little about cars but I thought higher horspower means higher miles per
+
+## gallon so interesting to see the opposite. Also thats why i picked the two
+
+## variables.
+
+## The graph also shows the data for cylinders The trend is that cars with more
+
+## cylinders have lower mpg
+```
+
+
+####  Using the dataset MTcars perform a summary statistic on the dataset and calculate the pearson coefficient.
+```{r}
+# Summary Statistics 
+
+summary(mtcars)
+ 
+# TAKE Pearson Correlation Coefficient between 'wt' and 'mpg'
+
+correlation_coefficient <- cor(mtcars$wt, mtcars$mpg, method = "pearson")
+ 
+# Print coeffiecnt
+
+print(correlation_coefficient)
+ 
+# The Pearson corrleation coefficent for 'wt' and 'mpg' was calculated to be -0.867
+
+# This statistic is a stat measure of linear relationship between two variabls
+
+#A value of -0.867 indicates a strong negative linear relationship between the weight of the cars and their fuel efficiency. 
+
+#As the weight of the car increases, the fuel efficiency (measured in miles per gallon) tends to decrease. 
+
+#This result is heavier cars generally need more energy to move which causes lower fuel efficiency. NOT A CAR EXPERT BTW.
+```
+
+
+### PART2
+
+####  Load the data into your R environment.
+```{r}
+
+# This just loads data
+data <- read_csv("Substance_Use_Disorder_Treatment_Program_Admissions__Beginning_2007_20240202.csv")
+
+head(data)
+```
+
+
+####  Evaluate the dataset, removed/imputed outliers, perform the correct summary statistics. Provided the correct justification.
+```{r}
+dim(data)
+# 99,367 rows and 7 columns
+```
+
+
+```{r}
+glimpse(data)
+# This just a glimpse of data
+```
+
+
+```{r}
+summary(data)
+# This shows various statistics available
+```
+
+
+```{r}
+# Interesting to see Admissions
+# Min of 1, 1st quartile 2, median 8, Mean 41.91, 3rd quartile 28, Max 2861
+# Will graph to see skewsness, I think this is right skewed.
+```
+
+
+```{r}
+# Basic statistics for the 'Admissions' column
+admissions_desc <- summary(data$Admissions)
+admissions_desc
+
+# Plotting histogram using base R
+hist(data$Admissions, 
+     main = "Histogram of Admissions", 
+     xlab = "Admissions", 
+     col = "skyblue", 
+     border = "white")
+ 
+# Skewed to the right but graph is not the best
+```
+
+
+```{r}
+# NA
+missing_values <- sum(is.na(data))
+missing_values
+ 
+# 0 missing values
+```
+
+
+```{r}
+frequency_table <- table(data$`Primary Substance Group`)
+frequency_table
+```
+
+
+```{r}
+# This is me filtering out the rows where 'Primary Substance Group' is 'None'
+data <- subset(data, `Primary Substance Group` != "None")
+
+# We did this to remove the "None" value because there was only one observation which contained "None" as there Primary Substance Group which can be considered as wrong data value.
+table(data$`Primary Substance Group`)
+```
+
+
+#### In normal distribution, most data falls within 3 standard deviations of the mean. Basically from stats class any Z-scores above 3 or below -3 could basically mean outliers. Then values with Z-scores beyond 3 are treated as outliers and replaced with the median as we did.
+```{r}
+# Calculating Z- score
+data$z_score <- abs(mean(data$Admissions) - data$Admissions) / sd(data$Admissions)
+
+
+#Imputing all values which have z score more than 3 with the median of the values
+data[data$z_score > 3, "Admissions" ] <- median(data$Admissions)
+
+```
+
+
+#### four tibbles or data frames - 
+```{r}
+# We are just writing out the vectors for county codes and names manually because it did not work otherwise
+county_codes <- c("AL", "AG", "BX", "BM", "CA", "CY", "CH", "CM", "CN", "CL", "CO", "CR", "DE", "DU", "ER", "ES", "FR", "FU", "GE", "GR", "HE", "JE", "KG", "LE", "LI", "MA", "MO", "MG", "NA", "NY", "NI", "ON", "OD", "OT", "OR", "OL", "OS", "OG", "PU", "QN", "RE", "RD", "RO", "SL", "SA", "SC", "SH", "SY", "SE", "ST", "SU", "SV", "TI", "TO", "UL", "WR", "WS", "WA", "WE", "WY", "YA")
+
+county_names <- c("Albany", "Allegany", "Bronx", "Broome", "Cattaraugus", "Cayuga", "Chautauqua", "Chemung", "Chenango", "Clinton", "Columbia", "Cortland", "Delaware", "Dutchess", "Erie", "Essex", "Franklin", "Fulton", "Genesee", "Greene", "Herkimer", "Jefferson", "Kings", "Lewis", "Livingston", "Madison", "Monroe", "Montgomery", "Nassau", "New_York_City", "Niagara", "Oneida", "Onondaga", "Ontario", "Orange", "Orleans", "Oswego", "Otsego", "Putnam", "Queens", "Rensselaer", "Richmond", "Rockland", "St_Lawrence", "Saratoga", "Schenectady", "Schoharie", "Schuyler", "Seneca", "Steuben", "Suffolk", "Sullivan", "Tioga", "Tompkins", "Ulster", "Warren", "Washington", "Wayne", "Westchester", "Wyoming", "Yates")
+ 
+# Tibble
+county_tibble <- tibble(county_code = county_codes, county_name = county_names)
+ 
+# Print the tibble to check
+print(county_tibble)
+ 
+
+```
+
+
+
+```{r}
+# Create program codes
+program_codes <- c("Crisis" = "CR", "Inpatient" = "IN", "Opioid Treatment Program" = "OT", 
+                   "Outpatient" = "OP", "Residential" = "RE", "Specialized" = "SP")
+ 
+# This is me literally asssigning  the program codes to the Program.Category
+program_category_df <- data %>%
+  distinct(`Program Category`) %>%
+  mutate(program_code = program_codes[`Program Category`])
+ 
+# Check
+print(program_category_df)
+```
+
+
+```{r}
+# Create substance codes
+substance_codes <- c("Heroin" = "H", "All Others" = "AO", "Other Opioids" = "OO", 
+                     "Alcohol" = "A", "Cocaine" = "C", "Marijuana" = "M")
+ 
+# Just asssigning the substance codes to the Primary.Substance.Group 
+primary_substance_group_df <- data %>%
+  distinct(`Primary Substance Group`) %>%
+  mutate(substance_code = substance_codes[`Primary Substance Group`])
+
+# Check
+print(primary_substance_group_df)
+```
+
+
+```{r}
+ # Now last one is the biggest one
+admissions_data <- data %>%
+  left_join (county_tibble, by = c("County of Program Location" = "county_name")) %>%
+  left_join(program_category_df, by = c("Program Category" = "Program Category")) %>%
+  left_join(primary_substance_group_df, by = c("Primary Substance Group" = "Primary Substance Group")) %>%
+  select(Year, 
+          'County of Program Location' = county_code,  # county_tibble
+          'Program Category' = program_code,           # program category
+         `Service Type`, 
+         `Age Group`, 
+         `Primary Substance Group` = substance_code,  # primary_substance_group_df
+         Admissions)
+ 
+# first few
+head(admissions_data)
+```
+
+
+#### Create a function called annualAdmissions() 
+```{r}
+annualAdmissions <- function(data) {
+  # Summarize the total admissions by year
+  admissions_by_year <- data %>%
+    group_by(Year) %>%
+    summarise(Total_Adm = sum(Admissions, na.rm = TRUE)) %>%
+    arrange(desc(Total_Adm))
+ 
+  # Finding  the year with the highest number of admissions
+  top_year <- admissions_by_year %>%
+    filter(Total_Adm == max(Total_Adm))
+ 
+  # Plot
+  p <- ggplot(admissions_by_year, aes(x = Year, y = Total_Adm)) +
+    geom_line() +
+    geom_point() +
+    annotate("text", x = top_year$Year, y = max(admissions_by_year$Total_Adm),
+             label = paste("Max Year:", top_year$Year),
+             vjust = -0.5, hjust = 1, color = "red") +  # Added annotate function
+    scale_x_continuous(breaks = unique(admissions_by_year$Year)) +  # Set x breaks to every year
+    labs(title = "Total Number of Admissions per Year in NY",
+         x = "Year",
+         y = "Number of Admissions") +
+    theme_minimal()
+  
+  print(p)
+  
+  # Explanation
+  cat("The chart shows the total number of admissions per year for the entire state of New York",
+      "Each year is displayed on the x-axis. The year with the highest number of admissions is annotated basically shown",
+      "It shows trends over time.")
+}
+
+annualAdmissions(admissions_data)
+```
+
+#### Analyze the percentage of admissions for each county and visualize the results for the top 5 counties using a bar chart. Explain the results.
+```{r}
+# We calculate the total admissions for each county
+total_admissions_by_county <- data %>%
+  
+  group_by(`County of Program Location`) %>%
+  
+  summarise(Total_Adm = sum(Admissions, na.rm = TRUE)) %>%
+  
+  ungroup()
+
+total_admissions_by_county
+```
+
+
+```{r}
+# We are using the total number of admissions to find percentages
+grand_total_admissions <- sum(total_admissions_by_county$Total_Adm)
+ 
+# We are using the % of total admissions for each county
+total_admissions_by_county <- total_admissions_by_county %>%
+ 
+   mutate(Percentage = (Total_Adm / grand_total_admissions) * 100)
+
+
+total_admissions_by_county[ 1:5, c("County of Program Location" , "Percentage")]
+
+```
+
+
+```{r}
+# Geting the top 5 counties by percentage
+top_5_counties <- total_admissions_by_county %>%
+  
+  arrange(desc(Percentage)) %>%
+  
+  slice_head(n = 5)
+
+top_5_counties
+```
+
+
+```{r}
+# Plotting
+top_5_counties %>%
+
+ggplot(aes(`County of Program Location` , Percentage)) + 
+  
+  geom_bar(stat = "identity", fill = 'skyblue') +
+  
+  geom_text(aes(label = paste(round(Percentage, 2), "%")), vjust = -0.5) +
+  
+  labs(title = "Top 5 Counties by Percentage of Admissions",
+       
+       x = "County",
+       y = "Percentage of Total Admissions") +
+  
+  scale_fill_brewer(palette = "Set3") +  # Use a categorical color palette
+  
+  theme_minimal()
+ 
+## Erie, Kings, Queens, Suffolk and New York are presesnted in the graph
+
+
+
+```
+
+#### Filter the data, using a regular expression, and extract all admissions to the various “Rehab” facilities
+```{r}
+# Creating dataframe called Rehab_data which filters all facilities that include the word rehab, rehabilitation
+Rehab_data <- data %>%
+     
+  filter(grepl("rehab|rehabilitation", `Service Type`, ignore.case = TRUE))
+ 
+head(Rehab_data,3)
+```
+
+
+#### Using the filtered data, identify which substance is the most prominent among each age group.
+```{r}
+rehab_data <- Rehab_data %>% 
+  
+  select(`Age Group`, `Primary Substance Group`, Admissions) %>%
+  
+  left_join(primary_substance_group_df, by = c("Primary Substance Group" = "substance_code")) %>%
+  
+  group_by(`Age Group`, `Primary Substance Group`) %>%
+  
+  summarise(total_admissions = sum(Admissions))
+
+
+head(rehab_data , 3)
+```
+
+
+```{r}
+rehab_data %>%
+  
+  group_by(`Age Group`) %>% 
+  
+  top_n(1, total_admissions) 
+```
+
+
+```{r}
+rehab_data %>%
+  
+  group_by(`Age Group`) %>% 
+  
+  top_n(1, total_admissions) %>%
+
+ggplot(aes(`Age Group`, total_admissions, fill = `Primary Substance Group`)) +
+  
+  geom_bar(stat = "identity", position = "dodge") +
+  
+ 
+  
+  labs(title = "Most Prominent Substance in Each Age Group for 'Rehab' Facilities",
+       x = "Most Prominent Substance",
+       y = "Age Group") +
+  
+  theme_minimal() +
+  
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
